@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@font-face {
+  font-family: 'Garamond Narrow';
+  src: url('/fonts/ITCGaramondStd-BookNarrowItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ember: #ff4200;
+  --ink: #0c0b0a;
+  --paper: #f6f1e9;
+  --paper-deep: #efe8db;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Base face on the body; children inherit, so .font-brand cascades
+   into nested spans instead of being clobbered by a * rule. */
+body {
+  font-family: 'Inter', sans-serif;
+}
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--paper);
+}
+
+body {
+  background: var(--paper);
+}
+
+/* The ONE brand display face — ITC Garamond Book Narrow Italic.
+   Used for the wordmark and every accent / display line on the site. */
+.font-brand,
+.font-display {
+  font-family: 'Garamond Narrow', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+::selection {
+  background: var(--ember);
+  color: #fff;
+}
+
+/* ---------- Hero load animations ---------- */
+@keyframes heroReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+    filter: blur(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes heroFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes heroZoom {
+  0% {
+    transform: scale(1.14);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.hero-anim {
+  opacity: 0;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hero-reveal {
+  animation-name: heroReveal;
+  animation-duration: 1.3s;
+}
+.hero-fade {
+  animation-name: heroFadeUp;
+  animation-duration: 1.1s;
+}
+.hero-zoom {
+  animation: heroZoom 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ---------- Scroll reveal ---------- */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(38px);
+  filter: blur(7px);
+  transition:
+    opacity 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.05s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform, filter;
+}
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Subtle ambient drift for background art */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.04);
+  }
+}
+.drift-slow {
+  animation: drift 18s ease-in-out infinite;
+}
+
+/* Shimmer sweep for premium accent rules */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Marquee for the trust strip */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 38s linear infinite;
+}
+
+/* Arrow CTA micro-motion */
+.cta-arrows .ar {
+  display: inline-block;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cta-arrows:hover .ar-l {
+  transform: translateX(-4px);
+}
+.cta-arrows:hover .ar-r {
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim,
+  .hero-zoom,
+  .drift-slow,
+  .marquee-track {
+    animation: none;
+    opacity: 1;
+  }
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}
+
+/* Hide scrollbar but keep scroll on horizontal trust strip */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
