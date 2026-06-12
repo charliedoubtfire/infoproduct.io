@@ -11,6 +11,24 @@ const NICHES = [
   'Football',
   'Networking',
   'Mindset',
+  'Dating',
+  'Trading',
+  'Real Estate',
+  'Public Speaking',
+  'Gaming',
+  'Cooking',
+  'Photography',
+  'Confidence',
+  'Productivity',
+  'Music Production',
+  'Marketing',
+  'Faith',
+  'Parenting',
+  'Style & Grooming',
+  'Sales',
+  'Crypto',
+  'Languages',
+  'Art',
 ];
 
 const ROLES = [
@@ -74,11 +92,10 @@ export default function Story() {
                 Whether it’s{' '}
                 <RollingText
                   words={NICHES}
-                  interval={2000}
+                  interval={1400}
                   fit="active"
                   className="font-brand text-ember text-[1.25em] leading-none"
                 />
-                …
               </p>
               <p>
                 Whatever it is, there are people as you read this, less skilled than you,
@@ -155,39 +172,43 @@ export default function Story() {
         />
       </section>
 
-      {/* ============ WHO IT'S FOR (paper) ============ */}
+      {/* ============ WHO IT'S FOR (paper) — deliberately understated ============ */}
       <section id="who" className="relative bg-paper">
         <div className="max-w-content mx-auto px-5 sm:px-8 pb-24 sm:pb-28">
           <Reveal>
+            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.26em] text-ink/40">
+              A quick gut-check
+            </p>
             <h2
-              className="mx-auto max-w-4xl text-center font-semibold text-ink text-[1.9rem] leading-[1.14] sm:text-[2.4rem] sm:leading-[1.12]"
-              style={{ letterSpacing: '-0.035em' }}
+              className="mt-4 mx-auto max-w-2xl text-center font-semibold text-ink text-[1.5rem] leading-[1.2] sm:text-[1.9rem]"
+              style={{ letterSpacing: '-0.03em' }}
             >
-              This Is Not For Everyone — <Accent>This Is Only For You If…</Accent>
+              This isn’t for everyone. <Accent>It’s only for you if…</Accent>
             </h2>
           </Reveal>
 
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {CRITERIA.map((c, i) => (
-              <Reveal key={c.title} delay={i * 90}>
-                <GlowCard className="group h-full rounded-[1.5rem] border border-ink/10 bg-white/60 hover:bg-white transition-all duration-500 p-7 sm:p-8">
-                  <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl border border-ember/30 bg-ember/[0.07] text-ember mb-6 group-hover:scale-105 transition-transform duration-500">
-                    <c.icon size={22} strokeWidth={1.6} />
+          <Reveal className="mt-9 mx-auto max-w-2xl" delay={80}>
+            <div className="rounded-[1.5rem] border border-ink/10 bg-white/40 divide-y divide-ink/[0.07]">
+              {CRITERIA.map((c) => (
+                <div key={c.title} className="flex items-start gap-4 p-5 sm:px-7 sm:py-6">
+                  <span className="mt-0.5 flex items-center justify-center w-9 h-9 rounded-xl bg-ember/[0.06] border border-ember/20 text-ember shrink-0">
+                    <c.icon size={17} strokeWidth={1.7} />
                   </span>
-                  <h3
-                    className="text-ink font-semibold text-[1.15rem] mb-2.5 leading-snug"
-                    style={{ letterSpacing: '-0.02em' }}
-                  >
-                    {c.title}
-                  </h3>
-                  <p className="text-ink/60 text-[15px] leading-[1.65]">{c.body}</p>
-                </GlowCard>
-              </Reveal>
-            ))}
-          </div>
+                  <div>
+                    <h3 className="text-ink font-semibold text-[15px] sm:text-base leading-snug">
+                      {c.title}
+                    </h3>
+                    <p className="text-ink/55 text-[14px] sm:text-[15px] leading-[1.6] mt-1">
+                      {c.body}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
 
-          <Reveal className="mt-12 text-center" delay={120}>
-            <p className="text-ink/70 text-[16px] sm:text-[18px] leading-[1.6]">
+          <Reveal className="mt-9 text-center" delay={120}>
+            <p className="text-ink/65 text-[15px] sm:text-[16px] leading-[1.6]">
               If this is you, then here is the exact roadmap you need to follow…
             </p>
           </Reveal>

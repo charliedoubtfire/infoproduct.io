@@ -1,7 +1,30 @@
-import { ArrowRight, Zap } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Zap } from 'lucide-react';
+import { motion, useInView, animate } from 'framer-motion';
 import { AI_TOOLS } from '../content';
 import { ICONS, Reveal, SectionHeading, Accent, CTAButton } from './shared';
 import { GlowCard } from './ui/spotlight-card';
+
+function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-20%' });
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, to, {
+      duration: 1.3,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setVal(Math.round(v)),
+    });
+    return () => controls.stop();
+  }, [inView, to]);
+  return (
+    <span ref={ref}>
+      {val}
+      {suffix}
+    </span>
+  );
+}
 
 export default function AISuite() {
   return (
@@ -31,32 +54,59 @@ export default function AISuite() {
         <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {AI_TOOLS.map((tool, i) => {
             const Icon = ICONS[tool.icon];
+            const boostNum = parseInt(tool.boost, 10) || 4;
+            const withPct = Math.min(42, Math.max(9, 100 / boostNum));
             return (
               <Reveal key={tool.name} delay={Math.min(i, 5) * 60}>
                 <GlowCard className="group h-full rounded-[1.5rem] border border-white/10 bg-white/[0.035] hover:bg-white/[0.07] hover:-translate-y-1 transition-all duration-500 p-6 flex flex-col">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-start justify-between mb-5">
                     <span className="flex items-center justify-center w-11 h-11 rounded-2xl border border-ember/40 bg-ember/[0.08] text-ember group-hover:scale-105 transition-transform duration-500">
                       <Icon size={20} strokeWidth={1.6} />
                     </span>
-                    <span className="font-display italic text-[2.1rem] leading-none text-ember">
-                      {tool.boost}
+                    <span className="flex flex-col items-end leading-none">
+                      <span className="font-display italic text-[2.1rem] text-ember leading-none">
+                        {tool.boost}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-white/35 mt-1">
+                        faster
+                      </span>
                     </span>
                   </div>
-                  <h3
-                    className="text-white font-semibold text-lg mb-1"
-                    style={{ letterSpacing: '-0.02em' }}
-                  >
+                  <h3 className="text-white font-semibold text-lg mb-1" style={{ letterSpacing: '-0.02em' }}>
                     {tool.name}
                   </h3>
                   <p className="text-white/45 text-[11px] uppercase tracking-[0.12em] mb-6">
                     {tool.process}
                   </p>
-                  <div className="mt-auto flex items-center gap-3 text-sm">
-                    <span className="text-white/40 line-through decoration-white/30">
-                      {tool.without}
-                    </span>
-                    <ArrowRight size={14} className="text-ember shrink-0" />
-                    <span className="text-white font-semibold">{tool.withIP}</span>
+
+                  {/* visual speed comparison */}
+                  <div className="mt-auto space-y-3.5">
+                    <div>
+                      <div className="flex justify-between items-baseline text-[11px] mb-1.5">
+                        <span className="uppercase tracking-[0.12em] text-white/40">By hand</span>
+                        <span className="text-white/40 line-through decoration-white/25">
+                          {tool.without}
+                        </span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                        <div className="h-full w-full rounded-full bg-white/20" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-baseline text-[11px] mb-1.5">
+                        <span className="uppercase tracking-[0.12em] text-ember">With the suite</span>
+                        <span className="text-white font-semibold">{tool.withIP}</span>
+                      </div>
+                      <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
+                        <motion.div
+                          className="h-full rounded-full bg-gradient-to-r from-ember to-[#ff7a45] shadow-[0_0_16px_rgba(255,66,0,0.6)]"
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${withPct}%` }}
+                          viewport={{ once: true, margin: '-12%' }}
+                          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </GlowCard>
               </Reveal>
@@ -66,7 +116,9 @@ export default function AISuite() {
           <Reveal delay={AI_TOOLS.length * 35}>
             <GlowCard className="h-full rounded-[1.5rem] border border-ember/50 bg-gradient-to-br from-ember/[0.22] to-ember/[0.04] p-6 flex flex-col items-center justify-center text-center">
               <Zap size={24} className="text-ember mb-3" fill="currentColor" />
-              <span className="font-display italic text-[3.6rem] leading-none text-ember">13×</span>
+              <span className="font-display italic text-[3.6rem] leading-none text-ember">
+                <CountUp to={13} suffix="×" />
+              </span>
               <p className="text-white/75 text-sm mt-3 leading-relaxed">
                 average efficiency boost
                 <br />

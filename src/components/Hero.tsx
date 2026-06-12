@@ -66,7 +66,7 @@ export default function Hero() {
           className="hero-anim hero-fade text-white/70 text-[12px] sm:text-[13px] font-semibold uppercase tracking-[0.28em]"
           style={{ animationDelay: '0.15s' }}
         >
-          <RollingText words={EYEBROW_WORDS} align="center" interval={2000} />
+          <RollingText words={EYEBROW_WORDS} align="center" interval={1600} />
         </span>
 
         <h1

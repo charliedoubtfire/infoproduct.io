@@ -1,10 +1,25 @@
-import { useState } from 'react';
-import { ChevronDown, Plus, Lock } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Plus, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { WEEKS } from '../content';
 import { ICONS, Reveal, Accent, CTAButton } from './shared';
 
 export default function Curriculum() {
-  const [openWeek, setOpenWeek] = useState<number>(0);
+  const [active, setActive] = useState(0);
+  const [dir, setDir] = useState(1);
+  const railRef = useRef<HTMLDivElement>(null);
+
+  const go = (i: number) => {
+    setDir(i > active ? 1 : -1);
+    setActive(i);
+    // keep the chosen week chip in view on mobile
+    const rail = railRef.current;
+    const chip = rail?.children[i] as HTMLElement | undefined;
+    chip?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  };
+
+  const week = WEEKS[active];
+  const Icon = ICONS[week.icon];
 
   return (
     <section id="curriculum" className="relative bg-paper">
@@ -22,155 +37,156 @@ export default function Curriculum() {
           </p>
         </Reveal>
 
-        <div className="mt-14 flex flex-col gap-3.5">
-          {WEEKS.map((week, i) => {
-            const Icon = ICONS[week.icon];
-            const open = openWeek === i;
-            return (
-              <Reveal key={week.numeral} delay={Math.min(i, 4) * 55}>
-                <div
-                  className={`rounded-[1.5rem] border transition-all duration-500 overflow-hidden ${
-                    open
-                      ? 'border-ember/40 bg-white shadow-[0_40px_80px_-40px_rgba(255,66,0,0.28)]'
-                      : 'border-ink/10 bg-white/55 hover:bg-white hover:border-ink/20'
+        {/* ---- Week selector rail (sliding ember pill) ---- */}
+        <Reveal className="mt-12" delay={60}>
+          <div
+            ref={railRef}
+            className="flex gap-2 overflow-x-auto no-scrollbar md:flex-wrap md:justify-center md:overflow-visible -mx-5 px-5 md:mx-0 md:px-0 pb-1"
+          >
+            {WEEKS.map((w, i) => {
+              const on = active === i;
+              return (
+                <button
+                  key={w.numeral}
+                  onClick={() => go(i)}
+                  className={`relative shrink-0 rounded-full px-4 sm:px-5 py-2.5 transition-colors duration-300 ${
+                    on ? 'text-white' : 'text-ink/55 hover:text-ink'
                   }`}
                 >
-                  <button
-                    onClick={() => setOpenWeek(open ? -1 : i)}
-                    className="w-full flex items-center gap-4 sm:gap-6 px-5 sm:px-8 py-5 sm:py-6 text-left"
-                  >
-                    <span
-                      className={`font-brand text-3xl sm:text-4xl w-9 sm:w-12 shrink-0 text-center transition-colors duration-500 ${
-                        open ? 'text-ember' : 'text-ink/25'
-                      }`}
-                    >
-                      {week.numeral}
-                    </span>
-                    <span
-                      className={`hidden sm:flex items-center justify-center w-11 h-11 rounded-2xl border shrink-0 transition-all duration-500 ${
-                        open
-                          ? 'border-ember/40 bg-ember/[0.08] text-ember'
-                          : 'border-ink/15 text-ink/35'
-                      }`}
-                    >
-                      <Icon size={20} strokeWidth={1.6} />
-                    </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="block text-[10px] font-semibold uppercase tracking-[0.28em] text-ink/40 mb-1">
-                        Week {i + 1}
-                      </span>
-                      <span
-                        className="block text-lg sm:text-2xl text-ink font-semibold"
-                        style={{ letterSpacing: '-0.03em' }}
-                      >
-                        {week.title}
-                      </span>
-                      <span className="block sm:hidden text-[11px] text-ink/40 mt-0.5">
-                        {week.modules.length} modules · tap to view
-                      </span>
-                    </span>
-                    <span className="shrink-0 flex items-center gap-2.5">
-                      <span
-                        className={`hidden sm:block text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors ${
-                          open ? 'text-ember' : 'text-ink/40'
-                        }`}
-                      >
-                        {open ? 'Collapse' : 'Expand'}
-                      </span>
-                      <span
-                        className={`flex items-center justify-center w-9 h-9 rounded-full border transition-all duration-500 ${
-                          open
-                            ? 'rotate-180 border-ember/40 text-ember bg-ember/[0.06]'
-                            : 'border-ink/15 text-ink/40'
-                        }`}
-                      >
-                        <ChevronDown size={18} />
-                      </span>
-                    </span>
-                  </button>
+                  {on && (
+                    <motion.span
+                      layoutId="weekPill"
+                      className="absolute inset-0 rounded-full bg-ember shadow-[0_14px_30px_-12px_rgba(255,66,0,0.7)]"
+                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <span className="relative flex items-center gap-2 whitespace-nowrap text-[13px] sm:text-sm font-semibold">
+                    <span className="font-brand text-[1.15em] leading-none">{w.numeral}</span>
+                    <span style={{ letterSpacing: '-0.01em' }}>{w.title}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Reveal>
 
-                  <div
-                    className={`grid transition-[grid-template-rows] duration-500 ease-out ${
-                      open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="px-5 sm:px-8 pb-8">
-                        <p className="text-ink/65 text-sm sm:text-base leading-relaxed max-w-3xl border-l-2 border-ember/50 pl-4 mb-7">
-                          {week.description}
-                        </p>
-                        {/* Modules — swipeable snap carousel on mobile, 2-col grid on md+ */}
-                        <div className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-5 px-5 pb-1 md:grid md:grid-cols-2 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
-                          {week.modules.map((mod, mi) => (
-                            <div
-                              key={mod.title}
-                              className="snap-center shrink-0 w-[86%] sm:w-[70%] md:w-auto md:shrink rounded-2xl border border-ink/10 bg-white p-5 sm:p-6 shadow-[0_14px_34px_-24px_rgba(12,11,10,0.35)] transition-colors duration-300 hover:border-ember/30 flex flex-col"
-                            >
-                              <div className="flex items-center justify-between gap-3 mb-3">
-                                <span className="inline-flex items-center gap-2">
-                                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-ember/[0.08] border border-ember/25 font-brand text-ember text-lg">
-                                    {mi + 1}
-                                  </span>
-                                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/35">
-                                    Module {mi + 1} of {week.modules.length}
-                                  </span>
-                                </span>
-                                {mod.comingSoon && (
-                                  <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ember bg-ember/[0.08] border border-ember/30 rounded-full px-2.5 py-1">
-                                    <Lock size={10} /> Soon
-                                  </span>
-                                )}
-                              </div>
-                              <h4
-                                className="text-ink font-semibold text-[15px] sm:text-[17px] leading-snug mb-2"
-                                style={{ letterSpacing: '-0.02em' }}
-                              >
-                                {mod.title}
-                              </h4>
-                              {mod.description && (
-                                <p className="text-ink/55 text-[13px] sm:text-sm leading-relaxed mb-3">
-                                  {mod.description}
-                                </p>
-                              )}
-                              {mod.points.length > 0 && (
-                                <ul className="space-y-2 border-t border-ink/[0.07] pt-3 mt-auto">
-                                  {mod.points.map((point) => (
-                                    <li
-                                      key={point}
-                                      className="flex items-start gap-2 text-[13px] sm:text-sm text-ink/70 leading-relaxed"
-                                    >
-                                      <Plus
-                                        size={13}
-                                        className="text-ember mt-1 shrink-0"
-                                        strokeWidth={2.5}
-                                      />
-                                      {point}
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        {/* mobile swipe hint */}
-                        {week.modules.length > 1 && (
-                          <div className="mt-3 flex md:hidden items-center justify-center gap-2 text-ink/40 text-[11px] font-semibold uppercase tracking-[0.18em]">
-                            Swipe to explore
-                            <span className="inline-flex gap-1">
-                              {week.modules.map((m) => (
-                                <span key={m.title} className="w-1.5 h-1.5 rounded-full bg-ember/40" />
-                              ))}
+        {/* ---- Active week panel ---- */}
+        <Reveal className="mt-7" delay={80}>
+          <div className="relative rounded-[1.75rem] border border-ink/10 bg-white shadow-[0_50px_100px_-60px_rgba(12,11,10,0.4)] overflow-hidden">
+            {/* week header */}
+            <div className="relative flex items-center gap-4 sm:gap-5 px-5 sm:px-8 pt-6 sm:pt-7 pb-5 border-b border-ink/[0.07]">
+              <span className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-ember/[0.08] border border-ember/25 text-ember shrink-0">
+                <Icon size={24} strokeWidth={1.6} />
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.26em] text-ink/40 mb-1">
+                  <span className="font-brand text-ember text-base leading-none">{week.numeral}</span>
+                  Week {active + 1}
+                </div>
+                <h3
+                  className="text-ink font-semibold text-xl sm:text-2xl leading-tight"
+                  style={{ letterSpacing: '-0.03em' }}
+                >
+                  {week.title}
+                </h3>
+              </div>
+              {/* desktop prev/next */}
+              <div className="ml-auto hidden sm:flex items-center gap-2">
+                <button
+                  onClick={() => go((active - 1 + WEEKS.length) % WEEKS.length)}
+                  aria-label="Previous week"
+                  className="flex items-center justify-center w-9 h-9 rounded-full border border-ink/15 text-ink/50 hover:border-ember/40 hover:text-ember transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => go((active + 1) % WEEKS.length)}
+                  aria-label="Next week"
+                  className="flex items-center justify-center w-9 h-9 rounded-full border border-ink/15 text-ink/50 hover:border-ember/40 hover:text-ember transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* animated content */}
+            <div className="relative px-5 sm:px-8 py-6 sm:py-7 overflow-hidden">
+              <AnimatePresence mode="wait" custom={dir} initial={false}>
+                <motion.div
+                  key={active}
+                  custom={dir}
+                  initial={{ opacity: 0, x: dir * 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: dir * -40 }}
+                  transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <p className="text-ink/65 text-[15px] sm:text-base leading-[1.7] max-w-3xl border-l-2 border-ember/50 pl-4 mb-6">
+                    {week.description}
+                  </p>
+
+                  {/* modules: snap carousel on mobile, grid on md+ */}
+                  <div className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-5 px-5 pb-1 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
+                    {week.modules.map((mod, mi) => (
+                      <div
+                        key={mod.title}
+                        className="snap-center shrink-0 w-[86%] sm:w-[70%] md:w-auto md:shrink rounded-2xl border border-ink/10 bg-paperDeep/40 p-5 sm:p-6 transition-colors duration-300 hover:border-ember/30 flex flex-col"
+                      >
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-ember/[0.08] border border-ember/25 font-brand text-ember text-lg shrink-0">
+                            {mi + 1}
+                          </span>
+                          {mod.comingSoon && (
+                            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ember bg-ember/[0.08] border border-ember/30 rounded-full px-2.5 py-1">
+                              <Lock size={10} /> Soon
                             </span>
-                          </div>
+                          )}
+                        </div>
+                        <h4
+                          className="text-ink font-semibold text-[15px] sm:text-[17px] leading-snug mb-2"
+                          style={{ letterSpacing: '-0.02em' }}
+                        >
+                          {mod.title}
+                        </h4>
+                        {mod.description && (
+                          <p className="text-ink/55 text-[13px] sm:text-sm leading-relaxed mb-3">
+                            {mod.description}
+                          </p>
+                        )}
+                        {mod.points.length > 0 && (
+                          <ul className="space-y-2 border-t border-ink/[0.07] pt-3 mt-auto">
+                            {mod.points.map((point) => (
+                              <li
+                                key={point}
+                                className="flex items-start gap-2 text-[13px] sm:text-sm text-ink/70 leading-relaxed"
+                              >
+                                <Plus size={13} className="text-ember mt-1 shrink-0" strokeWidth={2.5} />
+                                {point}
+                              </li>
+                            ))}
+                          </ul>
                         )}
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
-              </Reveal>
-            );
-          })}
-        </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* progress dots */}
+            <div className="flex items-center justify-center gap-1.5 pb-6">
+              {WEEKS.map((w, i) => (
+                <button
+                  key={w.numeral}
+                  onClick={() => go(i)}
+                  aria-label={`Week ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-400 ${
+                    active === i ? 'w-7 bg-ember' : 'w-1.5 bg-ink/15 hover:bg-ink/30'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </Reveal>
 
         {/* That was a lot + CTA */}
         <Reveal className="mt-20 mx-auto max-w-3xl" delay={80}>

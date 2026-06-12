@@ -241,9 +241,52 @@ body {
   );
 }
 @media (hover: none) {
-  /* touch devices have no roving pointer — skip the glow layers */
+  /* Touch devices have no roving pointer, so the spotlight can't follow a
+     cursor. Substitute a self-animating ember sheen that travels the border
+     ring + a soft breathing top glow — keeps cards premium on iPhone. */
+  .glow-card::before {
+    background-image: linear-gradient(
+      115deg,
+      transparent 34%,
+      rgba(255, 66, 0, 0.55) 50%,
+      transparent 66%
+    );
+    background-attachment: scroll;
+    background-size: 260% 260%;
+    filter: none;
+    animation: edgeSheen 5.5s linear infinite;
+  }
+  .glow-card::after {
+    background-image: radial-gradient(
+      120% 60% at 50% 0%,
+      rgba(255, 66, 0, 0.5),
+      transparent 70%
+    );
+    background-attachment: scroll;
+    background-size: 100% 100%;
+    animation: edgeBreathe 4.5s ease-in-out infinite;
+  }
+}
+@keyframes edgeSheen {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+@keyframes edgeBreathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
   .glow-card::before,
   .glow-card::after {
-    display: none;
+    animation: none;
   }
 }
