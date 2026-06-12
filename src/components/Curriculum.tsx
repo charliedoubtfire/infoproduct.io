@@ -65,6 +65,9 @@ export default function Curriculum() {
                       >
                         {week.title}
                       </span>
+                      <span className="block sm:hidden text-[11px] text-ink/40 mt-0.5">
+                        {week.modules.length} modules · tap to view
+                      </span>
                     </span>
                     <span className="shrink-0 flex items-center gap-2.5">
                       <span
@@ -96,41 +99,49 @@ export default function Curriculum() {
                         <p className="text-ink/65 text-sm sm:text-base leading-relaxed max-w-3xl border-l-2 border-ember/50 pl-4 mb-7">
                           {week.description}
                         </p>
-                        <div className="grid gap-3.5 md:grid-cols-2">
+                        {/* Modules — swipeable snap carousel on mobile, 2-col grid on md+ */}
+                        <div className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-5 px-5 pb-1 md:grid md:grid-cols-2 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
                           {week.modules.map((mod, mi) => (
                             <div
                               key={mod.title}
-                              className="rounded-2xl border border-ink/10 bg-paperDeep/50 p-5 transition-colors duration-300 hover:border-ember/30"
+                              className="snap-center shrink-0 w-[86%] sm:w-[70%] md:w-auto md:shrink rounded-2xl border border-ink/10 bg-white p-5 sm:p-6 shadow-[0_14px_34px_-24px_rgba(12,11,10,0.35)] transition-colors duration-300 hover:border-ember/30 flex flex-col"
                             >
-                              <div className="flex items-start justify-between gap-3 mb-2">
-                                <h4
-                                  className="text-ink font-semibold text-sm sm:text-base"
-                                  style={{ letterSpacing: '-0.02em' }}
-                                >
-                                  <span className="font-brand text-ember/90 mr-2">{mi + 1}.</span>
-                                  {mod.title}
-                                </h4>
+                              <div className="flex items-center justify-between gap-3 mb-3">
+                                <span className="inline-flex items-center gap-2">
+                                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-ember/[0.08] border border-ember/25 font-brand text-ember text-lg">
+                                    {mi + 1}
+                                  </span>
+                                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ink/35">
+                                    Module {mi + 1} of {week.modules.length}
+                                  </span>
+                                </span>
                                 {mod.comingSoon && (
                                   <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ember bg-ember/[0.08] border border-ember/30 rounded-full px-2.5 py-1">
                                     <Lock size={10} /> Soon
                                   </span>
                                 )}
                               </div>
+                              <h4
+                                className="text-ink font-semibold text-[15px] sm:text-[17px] leading-snug mb-2"
+                                style={{ letterSpacing: '-0.02em' }}
+                              >
+                                {mod.title}
+                              </h4>
                               {mod.description && (
-                                <p className="text-ink/55 text-xs sm:text-sm leading-relaxed mb-3">
+                                <p className="text-ink/55 text-[13px] sm:text-sm leading-relaxed mb-3">
                                   {mod.description}
                                 </p>
                               )}
                               {mod.points.length > 0 && (
-                                <ul className="space-y-1.5">
+                                <ul className="space-y-2 border-t border-ink/[0.07] pt-3 mt-auto">
                                   {mod.points.map((point) => (
                                     <li
                                       key={point}
-                                      className="flex items-start gap-2 text-xs sm:text-sm text-ink/70 leading-relaxed"
+                                      className="flex items-start gap-2 text-[13px] sm:text-sm text-ink/70 leading-relaxed"
                                     >
                                       <Plus
                                         size={13}
-                                        className="text-ember mt-0.5 shrink-0"
+                                        className="text-ember mt-1 shrink-0"
                                         strokeWidth={2.5}
                                       />
                                       {point}
@@ -141,6 +152,17 @@ export default function Curriculum() {
                             </div>
                           ))}
                         </div>
+                        {/* mobile swipe hint */}
+                        {week.modules.length > 1 && (
+                          <div className="mt-3 flex md:hidden items-center justify-center gap-2 text-ink/40 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                            Swipe to explore
+                            <span className="inline-flex gap-1">
+                              {week.modules.map((m) => (
+                                <span key={m.title} className="w-1.5 h-1.5 rounded-full bg-ember/40" />
+                              ))}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

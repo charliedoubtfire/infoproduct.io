@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import { DELIVERABLES } from '../content';
 import { ICONS, Reveal, Accent, CTAButton } from './shared';
+import { GlowCard } from './ui/spotlight-card';
 
 export default function Deliverables() {
   return (
@@ -24,7 +25,7 @@ export default function Deliverables() {
             const Icon = ICONS[d.icon];
             return (
               <Reveal key={d.title} delay={Math.min(i, 4) * 70}>
-                <div className="h-full rounded-[1.75rem] border border-ink/10 bg-white/60 hover:bg-white hover:border-ember/40 hover:shadow-[0_30px_60px_-35px_rgba(12,11,10,0.3)] transition-all duration-500 p-7 sm:p-8">
+                <GlowCard className="h-full rounded-[1.75rem] border border-ink/10 bg-white/60 hover:bg-white transition-all duration-500 p-7 sm:p-8">
                   <div className="flex items-center gap-4 mb-5">
                     <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl border border-ember/30 bg-ember/[0.07] text-ember shrink-0">
                       <Icon size={21} strokeWidth={1.6} />
@@ -49,7 +50,7 @@ export default function Deliverables() {
                       </li>
                     ))}
                   </ul>
-                </div>
+                </GlowCard>
               </Reveal>
             );
           })}

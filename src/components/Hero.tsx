@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import RevealLayer from './RevealLayer';
 import { CTAButton } from './shared';
+import { RollingText } from './ui/rolling-text';
 import { BG_IMAGE_1, BG_IMAGE_2 } from '../content';
+
+const EYEBROW_WORDS = ['Earn More', 'Work Less', 'Change Lives', 'Be Known For It'];
 
 export default function Hero() {
   const mouse = useRef({ x: -999, y: -999 });
@@ -60,10 +63,10 @@ export default function Hero() {
       {/* headline */}
       <div className="absolute top-[17%] left-0 right-0 z-50 flex flex-col items-center text-center px-6 pointer-events-none">
         <span
-          className="hero-anim hero-fade text-white/70 text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.28em]"
+          className="hero-anim hero-fade text-white/70 text-[12px] sm:text-[13px] font-semibold uppercase tracking-[0.28em]"
           style={{ animationDelay: '0.15s' }}
         >
-          Earn more &nbsp;·&nbsp; Work less &nbsp;·&nbsp; Change lives &nbsp;·&nbsp; Be known for it
+          <RollingText words={EYEBROW_WORDS} align="center" interval={2000} />
         </span>
 
         <h1

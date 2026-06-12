@@ -1,5 +1,17 @@
 import { Check, Flame, Compass, Crown } from 'lucide-react';
 import { Reveal, Accent, CTAButton } from './shared';
+import { RollingText } from './ui/rolling-text';
+import { GlowCard } from './ui/spotlight-card';
+
+const NICHES = [
+  'Fitness',
+  'E-Commerce',
+  'Clipping',
+  'Communication Skills',
+  'Football',
+  'Networking',
+  'Mindset',
+];
 
 const ROLES = [
   'Owners',
@@ -58,7 +70,16 @@ export default function Story() {
           {/* Strapline — exact roadmap copy, short paragraphs, left-aligned */}
           <Reveal className="mx-auto mt-9 max-w-2xl" delay={60}>
             <div className="space-y-4 text-[15px] sm:text-[17px] leading-[1.7] text-white/65">
-              <p>Whether it’s Fitness, E-Commerce, Communication Skills, Football, Networking…</p>
+              <p>
+                Whether it’s{' '}
+                <RollingText
+                  words={NICHES}
+                  interval={2000}
+                  fit="active"
+                  className="font-brand text-ember text-[1.25em] leading-none"
+                />
+                …
+              </p>
               <p>
                 Whatever it is, there are people as you read this, less skilled than you,
                 consistently generating anywhere from 5 to 7 figures per month online.
@@ -73,7 +94,7 @@ export default function Story() {
           {/* Discovery — two tiles side by side, CTA separate beneath */}
           <div className="mt-20 grid gap-5 lg:grid-cols-2 items-stretch">
             <Reveal delay={60}>
-              <div className="h-full rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-7 sm:p-10">
+              <GlowCard className="h-full rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-7 sm:p-10">
                 <h3
                   className="text-[1.45rem] sm:text-[1.7rem] text-white font-semibold leading-[1.2] mb-5"
                   style={{ letterSpacing: '-0.03em' }}
@@ -97,11 +118,11 @@ export default function Story() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </GlowCard>
             </Reveal>
 
             <Reveal delay={140}>
-              <div className="h-full rounded-[1.75rem] border border-ember/30 bg-gradient-to-br from-ember/[0.1] to-transparent p-7 sm:p-10 flex flex-col">
+              <GlowCard className="h-full rounded-[1.75rem] border border-ember/30 bg-gradient-to-br from-ember/[0.1] to-transparent p-7 sm:p-10 flex flex-col">
                 <p className="text-white/65 leading-[1.7] mb-7">
                   All of whom know their part of the operation intimately — better than any
                   generalist ever could. From these connections I pulled together the blueprint
@@ -112,7 +133,7 @@ export default function Story() {
                   The only difference between your business today and scaling it to eight figures
                   is, literally, just <span className="font-brand text-ember">information</span>.
                 </p>
-              </div>
+              </GlowCard>
             </Reveal>
           </div>
 
@@ -149,7 +170,7 @@ export default function Story() {
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             {CRITERIA.map((c, i) => (
               <Reveal key={c.title} delay={i * 90}>
-                <div className="group h-full rounded-[1.5rem] border border-ink/10 bg-white/60 hover:bg-white hover:border-ember/40 hover:shadow-[0_30px_60px_-30px_rgba(12,11,10,0.22)] transition-all duration-500 p-7 sm:p-8">
+                <GlowCard className="group h-full rounded-[1.5rem] border border-ink/10 bg-white/60 hover:bg-white transition-all duration-500 p-7 sm:p-8">
                   <span className="inline-flex items-center justify-center w-12 h-12 rounded-2xl border border-ember/30 bg-ember/[0.07] text-ember mb-6 group-hover:scale-105 transition-transform duration-500">
                     <c.icon size={22} strokeWidth={1.6} />
                   </span>
@@ -160,7 +181,7 @@ export default function Story() {
                     {c.title}
                   </h3>
                   <p className="text-ink/60 text-[15px] leading-[1.65]">{c.body}</p>
-                </div>
+                </GlowCard>
               </Reveal>
             ))}
           </div>

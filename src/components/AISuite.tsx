@@ -1,6 +1,7 @@
 import { ArrowRight, Zap } from 'lucide-react';
 import { AI_TOOLS } from '../content';
 import { ICONS, Reveal, SectionHeading, Accent, CTAButton } from './shared';
+import { GlowCard } from './ui/spotlight-card';
 
 export default function AISuite() {
   return (
@@ -32,7 +33,7 @@ export default function AISuite() {
             const Icon = ICONS[tool.icon];
             return (
               <Reveal key={tool.name} delay={Math.min(i, 5) * 60}>
-                <div className="group h-full rounded-[1.5rem] border border-white/10 bg-white/[0.035] hover:bg-white/[0.07] hover:border-ember/40 hover:-translate-y-1 transition-all duration-500 p-6 flex flex-col">
+                <GlowCard className="group h-full rounded-[1.5rem] border border-white/10 bg-white/[0.035] hover:bg-white/[0.07] hover:-translate-y-1 transition-all duration-500 p-6 flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <span className="flex items-center justify-center w-11 h-11 rounded-2xl border border-ember/40 bg-ember/[0.08] text-ember group-hover:scale-105 transition-transform duration-500">
                       <Icon size={20} strokeWidth={1.6} />
@@ -57,13 +58,13 @@ export default function AISuite() {
                     <ArrowRight size={14} className="text-ember shrink-0" />
                     <span className="text-white font-semibold">{tool.withIP}</span>
                   </div>
-                </div>
+                </GlowCard>
               </Reveal>
             );
           })}
 
           <Reveal delay={AI_TOOLS.length * 35}>
-            <div className="h-full rounded-[1.5rem] border border-ember/50 bg-gradient-to-br from-ember/[0.22] to-ember/[0.04] p-6 flex flex-col items-center justify-center text-center">
+            <GlowCard className="h-full rounded-[1.5rem] border border-ember/50 bg-gradient-to-br from-ember/[0.22] to-ember/[0.04] p-6 flex flex-col items-center justify-center text-center">
               <Zap size={24} className="text-ember mb-3" fill="currentColor" />
               <span className="font-display italic text-[3.6rem] leading-none text-ember">13×</span>
               <p className="text-white/75 text-sm mt-3 leading-relaxed">
@@ -71,7 +72,7 @@ export default function AISuite() {
                 <br />
                 across the entire suite
               </p>
-            </div>
+            </GlowCard>
           </Reveal>
         </div>
 
