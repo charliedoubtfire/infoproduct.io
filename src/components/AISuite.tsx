@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Zap } from 'lucide-react';
+import { ArrowRight, X, Check } from 'lucide-react';
 import { motion, useInView, animate } from 'framer-motion';
 import { AI_TOOLS } from '../content';
-import { ICONS, Reveal, SectionHeading, Accent, CTAButton } from './shared';
-import { GlowCard } from './ui/spotlight-card';
+import { ICONS, SectionHeading, Accent, CTAButton } from './shared';
 
 function CountUp({ to, suffix = '' }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-20%' });
+  const inView = useInView(ref, { once: false, margin: '-20%' });
   const [val, setVal] = useState(0);
   useEffect(() => {
     if (!inView) return;
@@ -48,98 +47,195 @@ export default function AISuite() {
             </>
           }
         >
-          A Human Will <Accent>Always Be Slower</Accent>
+          <span className="font-brand font-normal">A Human Will</span>{' '}
+          <Accent>Always Be Slower</Accent>
         </SectionHeading>
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* ---- The ledger: by hand vs the suite, line by line ---- */}
+        <div className="mt-12 mx-auto max-w-4xl rounded-[1.75rem] border border-white/10 bg-white/[0.03] overflow-hidden">
+          {/* column headers */}
+          <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[1.2fr_1fr_1fr_auto] items-center gap-3 px-5 sm:px-8 py-4 border-b border-white/10 bg-white/[0.03]">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">
+              The job
+            </span>
+            <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/35">
+              <X size={12} className="text-white/30" /> By hand
+            </span>
+            <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-ember">
+              <Check size={12} /> With the suite
+            </span>
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-ember text-right">
+              Advantage
+            </span>
+          </div>
+
           {AI_TOOLS.map((tool, i) => {
             const Icon = ICONS[tool.icon];
-            const boostNum = parseInt(tool.boost, 10) || 4;
-            const withPct = Math.min(42, Math.max(9, 100 / boostNum));
             return (
-              <Reveal key={tool.name} delay={Math.min(i, 5) * 60}>
-                <GlowCard className="group h-full rounded-[1.5rem] border border-white/10 bg-white/[0.035] hover:bg-white/[0.07] hover:-translate-y-1 transition-all duration-500 p-6 flex flex-col">
-                  <div className="flex items-start justify-between mb-5">
-                    <span className="flex items-center justify-center w-11 h-11 rounded-2xl border border-ember/40 bg-ember/[0.08] text-ember group-hover:scale-105 transition-transform duration-500">
-                      <Icon size={20} strokeWidth={1.6} />
-                    </span>
-                    <span className="flex flex-col items-end leading-none">
-                      <span className="font-display italic text-[2.1rem] text-ember leading-none">
-                        {tool.boost}
-                      </span>
-                      <span className="text-[10px] uppercase tracking-[0.18em] text-white/35 mt-1">
-                        faster
-                      </span>
-                    </span>
+              <motion.div
+                key={tool.name}
+                initial={{ opacity: 0, x: -28 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, margin: '-8%' }}
+                transition={{ duration: 0.55, delay: (i % 4) * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                className={`group grid grid-cols-[1fr_auto] sm:grid-cols-[1.2fr_1fr_1fr_auto] items-center gap-x-3 gap-y-2 px-5 sm:px-8 py-4 sm:py-5 hover:bg-ember/[0.05] transition-colors duration-300 ${
+                  i < AI_TOOLS.length - 1 ? 'border-b border-white/[0.06]' : ''
+                }`}
+              >
+                {/* the job */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="flex items-center justify-center w-9 h-9 rounded-xl border border-ember/35 bg-ember/[0.08] text-ember shrink-0">
+                    <Icon size={17} strokeWidth={1.7} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold text-[14px] sm:text-[15px] leading-tight truncate" style={{ letterSpacing: '-0.015em' }}>
+                      {tool.name}
+                    </p>
+                    <p className="text-white/40 text-[10px] uppercase tracking-[0.1em] mt-0.5 truncate">
+                      {tool.process}
+                    </p>
                   </div>
-                  <h3 className="text-white font-semibold text-lg mb-1" style={{ letterSpacing: '-0.02em' }}>
-                    {tool.name}
-                  </h3>
-                  <p className="text-white/45 text-[11px] uppercase tracking-[0.12em] mb-6">
-                    {tool.process}
-                  </p>
+                </div>
 
-                  {/* visual speed comparison */}
-                  <div className="mt-auto space-y-3.5">
-                    <div>
-                      <div className="flex justify-between items-baseline text-[11px] mb-1.5">
-                        <span className="uppercase tracking-[0.12em] text-white/40">By hand</span>
-                        <span className="text-white/40 line-through decoration-white/25">
-                          {tool.without}
-                        </span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
-                        <div className="h-full w-full rounded-full bg-white/20" />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-baseline text-[11px] mb-1.5">
-                        <span className="uppercase tracking-[0.12em] text-ember">With the suite</span>
-                        <span className="text-white font-semibold">{tool.withIP}</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
-                        <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-ember to-[#ff7a45] shadow-[0_0_16px_rgba(255,66,0,0.6)]"
-                          initial={{ width: 0 }}
-                          whileInView={{ width: `${withPct}%` }}
-                          viewport={{ once: true, margin: '-12%' }}
-                          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </GlowCard>
-              </Reveal>
+                {/* multiplier — the hero of every row */}
+                <motion.span
+                  className="row-start-1 col-start-2 sm:col-start-4 font-brand text-ember text-[1.7rem] sm:text-[2rem] leading-none text-right whitespace-nowrap"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: false, margin: '-8%' }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 16, delay: 0.25 + (i % 4) * 0.07 }}
+                  style={{ textShadow: '0 0 22px rgba(255,66,0,0.45)' }}
+                >
+                  {tool.boost.replace('x', '×')}
+                </motion.span>
+
+                {/* by hand — small, struck through, fading */}
+                <p className="col-span-2 sm:col-span-1 sm:col-start-2 flex items-center gap-2 text-white/35 text-[13px] sm:text-[14px]">
+                  <span className="sm:hidden"><X size={12} className="text-white/25" /></span>
+                  <span className="line-through decoration-white/25">{tool.without}</span>
+                </p>
+
+                {/* with the suite — bright, bold, winning */}
+                <p className="col-span-2 sm:col-span-1 flex items-center gap-2 text-white font-semibold text-[14px] sm:text-[15px]">
+                  <ArrowRight size={13} className="text-ember shrink-0 sm:hidden" />
+                  <Check size={14} className="text-ember shrink-0 hidden sm:block" strokeWidth={2.5} />
+                  {tool.withIP}
+                </p>
+              </motion.div>
             );
           })}
 
-          <Reveal delay={AI_TOOLS.length * 35}>
-            <GlowCard className="h-full rounded-[1.5rem] border border-ember/50 bg-gradient-to-br from-ember/[0.22] to-ember/[0.04] p-6 flex flex-col items-center justify-center text-center">
-              <Zap size={24} className="text-ember mb-3" fill="currentColor" />
-              <span className="font-display italic text-[3.6rem] leading-none text-ember">
-                <CountUp to={13} suffix="×" />
-              </span>
-              <p className="text-white/75 text-sm mt-3 leading-relaxed">
-                average efficiency boost
-                <br />
-                across the entire suite
+          {/* the verdict: 13× — a genuine moment */}
+          <div className="relative px-5 sm:px-8 py-8 sm:py-10 border-t border-ember/30 overflow-hidden">
+            {/* a quiet ember halo, breathing slowly */}
+            <motion.div
+              aria-hidden
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[220px] pointer-events-none"
+              style={{ background: 'radial-gradient(closest-side, rgba(255,66,0,0.18), transparent 72%)' }}
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+
+            <div className="relative flex flex-col items-center text-center">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/40 mb-4">
+                Across the entire suite
               </p>
-            </GlowCard>
-          </Reveal>
+              <motion.span
+                className="font-brand text-ember text-[2.7rem] sm:text-[3.2rem] leading-none"
+                initial={{ opacity: 0, y: 14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, margin: '-15%' }}
+                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {/* a slow luminous breath on the glow — the eye finds it without being shouted at */}
+                <motion.span
+                  className="inline-block"
+                  animate={{
+                    textShadow: [
+                      '0 0 18px rgba(255,66,0,0.25)',
+                      '0 0 38px rgba(255,66,0,0.6)',
+                      '0 0 18px rgba(255,66,0,0.25)',
+                    ],
+                  }}
+                  transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <CountUp to={13} suffix="×" />
+                </motion.span>
+              </motion.span>
+              <p className="mt-2.5 text-white/80 text-[14px] sm:text-[15px] font-medium leading-snug">
+                average efficiency boost
+              </p>
+              {/* a thin line drawing itself, then shimmering gently */}
+              <motion.span
+                className="mt-4 block w-[180px] overflow-hidden rounded-full"
+                initial={{ scaleX: 0, opacity: 0 }}
+                whileInView={{ scaleX: 1, opacity: 1 }}
+                viewport={{ once: false, margin: '-15%' }}
+                transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+              >
+                <span className="block h-[2px] w-full line-shimmer" />
+              </motion.span>
+            </div>
+          </div>
         </div>
 
-        <Reveal className="mt-16 mx-auto max-w-2xl text-center" delay={120}>
-          <p className="text-white/60 text-[15px] sm:text-[17px] leading-[1.7] mb-8">
-            Right now there is a window of arbitrage before these efficiency boosters become common
-            practice. Why not start whilst you hold the most unfair advantage?
-          </p>
-          <div className="flex justify-center">
+        {/* the arbitrage window — a killer point, treated like one */}
+        <motion.div
+          className="mt-20 mx-auto max-w-3xl text-center"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, margin: '-12%' }}
+          variants={{ show: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } } }}
+        >
+          <h3 className="font-brand text-white">
+            <span className="block text-[1.4rem] leading-[1.3] sm:text-[1.8rem] sm:leading-[1.28] text-white/85">
+              {'Right now there is a window of arbitrage before these efficiency boosters become common practice.'
+                .split(' ')
+                .map((t, i) => (
+                  <motion.span
+                    key={i}
+                    className="inline-block mr-[0.25em]"
+                    variants={{
+                      hidden: { opacity: 0, y: 18, filter: 'blur(6px)' },
+                      show: { opacity: 1, y: 0, filter: 'blur(0px)' },
+                    }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    {t}
+                  </motion.span>
+                ))}
+            </span>
+            <span className="block mt-5 text-[2rem] leading-[1.2] sm:text-[2.9rem] sm:leading-[1.16]">
+              {[
+                ...'Why not'.split(' ').map((t) => ({ t, a: false })),
+                ...'start whilst you hold the most unfair advantage?'
+                  .split(' ')
+                  .map((t) => ({ t, a: true })),
+              ].map((w, i) => (
+                <motion.span
+                  key={i}
+                  className={`inline-block mr-[0.25em] ${w.a ? 'text-ember' : ''}`}
+                  variants={{
+                    hidden: { opacity: 0, y: 22, filter: 'blur(7px)' },
+                    show: { opacity: 1, y: 0, filter: 'blur(0px)' },
+                  }}
+                  transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {w.t}
+                </motion.span>
+              ))}
+            </span>
+          </h3>
+          <motion.div
+            className="mt-10 flex justify-center"
+            variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
             <CTAButton label="Book A Call Now" size="lg" />
-          </div>
-        </Reveal>
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* seam → paper proof */}
       <div
         className="h-40 w-full"
         style={{ background: 'linear-gradient(to bottom, var(--ink), var(--paper))' }}

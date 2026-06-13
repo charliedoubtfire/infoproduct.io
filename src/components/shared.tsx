@@ -87,14 +87,11 @@ export function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    /* toggles both ways — content breathes in when reached, and resets once
+       it has fully left, so every pass feels alive without mid-read flicker */
     const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' },
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0.1, rootMargin: '0px 0px -14% 0px' },
     );
     obs.observe(el);
     return () => obs.disconnect();

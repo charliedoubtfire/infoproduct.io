@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
 const LINKS = [
-  { label: 'Curriculum', href: '#curriculum' },
-  { label: 'AI Suite', href: '#ai-suite' },
-  { label: 'Proof', href: '#proof' },
-  { label: 'Mentor', href: '#mentor' },
-  { label: 'Enrol', href: '#enrol' },
+  { label: 'Features', href: '#included' },
+  { label: 'Call', href: '#call' },
+  { label: 'Message', href: '#contact' },
 ];
 
 /* The condensed IP brand mark, drawn in the serif italic brand face. */

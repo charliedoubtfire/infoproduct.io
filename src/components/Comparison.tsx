@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, X, ChevronDown } from 'lucide-react';
+import { Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { COMPARISON } from '../content';
 import { Reveal, Wordmark } from './shared';
 
@@ -20,25 +20,18 @@ export default function Comparison() {
           </p>
         </Reveal>
 
-        {/* Obvious click-to-expand dropdown — centred */}
+        {/* Premium solid click-to-expand trigger — centred */}
         <Reveal className="mt-12 mx-auto max-w-3xl" delay={80}>
           <button
             onClick={() => setOpen(!open)}
             aria-expanded={open}
-            className={`group w-full rounded-2xl border-2 transition-all duration-400 px-5 sm:px-8 py-6 text-center ${
+            className={`group w-full rounded-2xl border transition-all duration-400 px-5 sm:px-8 py-6 text-center ${
               open
-                ? 'border-ember/50 bg-white shadow-[0_30px_60px_-35px_rgba(255,66,0,0.45)]'
-                : 'border-dashed border-ink/25 bg-white/70 hover:bg-white hover:border-ember/50 hover:shadow-[0_30px_60px_-35px_rgba(12,11,10,0.3)]'
+                ? 'border-ember/40 bg-white shadow-[0_30px_60px_-35px_rgba(255,66,0,0.45)]'
+                : 'border-ink/10 bg-white shadow-[0_18px_40px_-28px_rgba(12,11,10,0.45)] hover:shadow-[0_30px_60px_-32px_rgba(12,11,10,0.4)] hover:-translate-y-0.5'
             }`}
           >
-            <span
-              className="block text-ink font-semibold text-base sm:text-lg"
-              style={{ letterSpacing: '-0.02em' }}
-            >
-              See The Full Feature Comparison
-            </span>
-            {/* chips on their own row — fixed heights, no line-metric overlap */}
-            <span className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            <span className="flex flex-wrap items-center justify-center gap-2.5">
               <span className="inline-flex items-center h-7 px-3 rounded-full border border-ink/15 bg-paperDeep/60 text-ink/55 text-[12px] font-medium">
                 ‘Competition’
               </span>
@@ -47,21 +40,19 @@ export default function Comparison() {
                 <Wordmark className="text-[13px]" />
               </span>
             </span>
+            <span className="block mt-3.5 text-ink font-semibold text-base sm:text-lg" style={{ letterSpacing: '-0.02em' }}>
+              See The Full Feature Comparison
+            </span>
             <span
-              className={`mx-auto mt-4 flex items-center justify-center gap-2 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors ${
-                open ? 'text-ember' : 'text-ink/45 group-hover:text-ember'
+              className={`mx-auto mt-3 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[12px] font-semibold uppercase tracking-[0.16em] transition-colors ${
+                open ? 'bg-ember/10 text-ember' : 'bg-ember text-white group-hover:bg-[#e63b00]'
               }`}
             >
-              {open ? 'Click To Close' : 'Click To Expand'}
-              <span
-                className={`flex items-center justify-center w-7 h-7 rounded-full border transition-all duration-500 ${
-                  open
-                    ? 'rotate-180 border-ember/40 text-ember bg-ember/[0.07]'
-                    : 'border-ink/20 text-ink/50 group-hover:border-ember/40 group-hover:text-ember animate-bounce'
-                }`}
-              >
-                <ChevronDown size={15} />
-              </span>
+              {open ? 'Close' : 'Tap To Reveal'}
+              <ChevronDown
+                size={15}
+                className={`transition-transform duration-500 ${open ? 'rotate-180' : 'group-hover:translate-y-0.5'}`}
+              />
             </span>
           </button>
 
@@ -82,11 +73,11 @@ export default function Comparison() {
                     <span className="hidden sm:inline">‘Competition’</span>
                   </span>
                   <span className="px-1 sm:px-3 py-4 text-center bg-ember/20 h-full flex items-center justify-center">
-                    <span className="sm:hidden font-brand text-[15px] leading-none" style={{ color: '#ff6a3d' }}>
+                    <span className="sm:hidden font-brand text-[15px] leading-none text-ember">
                       IP
                     </span>
                     <span className="hidden sm:inline leading-none">
-                      <Wordmark className="text-[15px]" color="#ff6a3d" />
+                      <Wordmark className="text-[15px]" />
                     </span>
                   </span>
                 </div>
@@ -116,13 +107,22 @@ export default function Comparison() {
                   </div>
                 ))}
                 {/* footer accent */}
-                <div className="grid grid-cols-[1fr_3.5rem_3.5rem] sm:grid-cols-[1fr_7rem_8rem] bg-ink">
-                  <span className="px-4 sm:px-7 py-3 text-[11px] text-white/45 text-left">
-                    Every capability. One place.
-                  </span>
-                  <span />
-                  <span className="bg-ember/20" />
-                </div>
+              </div>
+
+              {/* easy close at the end */}
+              <div className="mt-4 flex justify-center">
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    document
+                      .getElementById('proof')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-white px-6 py-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-ink/60 hover:text-ember hover:border-ember/40 transition-colors"
+                >
+                  <ChevronUp size={15} />
+                  Close Comparison
+                </button>
               </div>
             </div>
           </div>

@@ -1,208 +1,437 @@
-import { useRef, useState } from 'react';
-import { Plus, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { Plus, Lock, ChevronDown, Check } from 'lucide-react';
+import { motion, useScroll, useSpring, useInView } from 'framer-motion';
 import { WEEKS } from '../content';
 import { ICONS, Reveal, Accent, CTAButton } from './shared';
 
-export default function Curriculum() {
-  const [active, setActive] = useState(0);
-  const [dir, setDir] = useState(1);
-  const railRef = useRef<HTMLDivElement>(null);
+/* Modules as a clean step list inside each week — title and summary always
+   visible, the full detail one tap away. */
+function ModuleSteps({ modules }: { modules: (typeof WEEKS)[number]['modules'] }) {
+  const [openSet, setOpenSet] = useState<Set<number>>(new Set());
 
-  const go = (i: number) => {
-    setDir(i > active ? 1 : -1);
-    setActive(i);
-    // keep the chosen week chip in view on mobile
-    const rail = railRef.current;
-    const chip = rail?.children[i] as HTMLElement | undefined;
-    chip?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  const toggle = (mi: number) =>
+    setOpenSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(mi)) next.delete(mi);
+      else next.add(mi);
+      return next;
+    });
+
+  const openOn = (mi: number) =>
+    setOpenSet((prev) => (prev.has(mi) ? prev : new Set(prev).add(mi)));
+
+  return (
+    <div className="space-y-2.5">
+      {modules.map((mod, mi) => {
+        const open = openSet.has(mi);
+        const hasMore = mod.points.length > 0;
+        return (
+          <div
+            key={mod.title}
+            onMouseEnter={() => hasMore && openOn(mi)}
+            className={`rounded-2xl border transition-colors duration-300 ${
+              open ? 'border-ember/30 bg-ember/[0.03]' : 'border-ink/[0.08] bg-paperDeep/30'
+            }`}
+          >
+            <button
+              onClick={() => hasMore && toggle(mi)}
+              className={`w-full text-left px-4 sm:px-5 py-4 flex items-start gap-3.5 ${
+                hasMore ? 'cursor-pointer' : 'cursor-default'
+              }`}
+              aria-expanded={open}
+            >
+              <span className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-full bg-ember/[0.08] border border-ember/25 font-brand text-ember text-base shrink-0">
+                {mi + 1}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2 flex-wrap">
+                  <h4
+                    className="text-ink font-semibold text-[15px] leading-snug"
+                    style={{ letterSpacing: '-0.02em' }}
+                  >
+                    {mod.title}
+                  </h4>
+                  {mod.comingSoon && (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-ember bg-ember/[0.08] border border-ember/30 rounded-full px-2 py-0.5">
+                      <Lock size={9} /> Soon
+                    </span>
+                  )}
+                </span>
+                {mod.description && (
+                  <p className="text-ink/75 text-[13px] sm:text-sm leading-relaxed mt-1.5">
+                    {mod.description}
+                  </p>
+                )}
+                {hasMore && (
+                  <span
+                    className={`mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                      open ? 'text-ember' : 'text-ink/40'
+                    }`}
+                  >
+                    {open ? 'Close' : (
+                      <>
+                        <span className="md:hidden">Tap to see what’s inside</span>
+                        <span className="hidden md:inline">See what’s inside</span>
+                      </>
+                    )}
+                    <ChevronDown
+                      size={13}
+                      className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
+                    />
+                  </span>
+                )}
+              </span>
+            </button>
+
+            {hasMore && (
+              <div
+                className={`grid transition-[grid-template-rows] duration-500 ease-out ${
+                  open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <ul className="space-y-2 px-4 sm:px-5 pb-4 ml-[46px]">
+                    {mod.points.map((point) => (
+                      <li
+                        key={point}
+                        className="flex items-start gap-2 text-[13px] sm:text-sm text-ink/85 leading-relaxed"
+                      >
+                        <Plus size={13} className="text-ember mt-1 shrink-0" strokeWidth={2.5} />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* A condensed milestone card: week number, title and blurb up front —
+   the modules glide open on hover (desktop) or tap (mobile). */
+function WeekCard({
+  week,
+  index,
+  Icon,
+  onVisit,
+}: {
+  week: (typeof WEEKS)[number];
+  index: number;
+  Icon: (typeof ICONS)[string];
+  onVisit: (i: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  /* the card crossing mid-screen comes into sharp focus, drawing the eye */
+  const inFocus = useInView(ref, { margin: '-32% 0px -32% 0px' });
+
+  const openUp = () => {
+    setOpen(true);
+    onVisit(index);
   };
 
-  const week = WEEKS[active];
-  const Icon = ICONS[week.icon];
+  return (
+    <div
+      ref={ref}
+      className={`group rounded-[1.75rem] border bg-white shadow-[0_40px_90px_-60px_rgba(12,11,10,0.45)] overflow-hidden transition-all duration-700 ${
+        inFocus ? 'border-ember/25 opacity-100' : 'border-ink/10 opacity-[0.55]'
+      }`}
+      onMouseEnter={openUp}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        onClick={() => (open ? setOpen(false) : openUp())}
+        className="w-full text-left cursor-pointer"
+        aria-expanded={open}
+      >
+        <div className="flex items-center gap-4 px-5 sm:px-7 pt-6 pb-4">
+          <span className="flex items-center justify-center w-11 h-11 rounded-2xl bg-ember/[0.08] border border-ember/25 text-ember shrink-0">
+            <Icon size={21} strokeWidth={1.6} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-bold uppercase tracking-[0.22em] text-ember mb-1">
+              Week {index + 1}
+            </p>
+            <h3 className="font-brand text-ink text-[1.45rem] sm:text-[1.6rem] leading-[1.1]">
+              {week.title}
+            </h3>
+          </div>
+          <ChevronDown
+            size={18}
+            className={`shrink-0 transition-all duration-500 ${
+              open ? 'rotate-180 text-ember' : 'text-ink/30'
+            }`}
+          />
+        </div>
+
+        <div className="px-5 sm:px-7 pb-5">
+          <p className="text-ink/80 text-[14px] sm:text-[15px] leading-[1.7] border-l-2 border-ember/50 pl-4">
+            {week.description}
+          </p>
+          <span
+            className={`mt-3.5 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink/40 transition-opacity duration-300 ${
+              open ? 'opacity-0' : ''
+            }`}
+          >
+            <span className="md:hidden">Tap to view the {week.modules.length} modules</span>
+            <span className="hidden md:inline">Hover to view the {week.modules.length} modules</span>
+          </span>
+        </div>
+      </button>
+
+      {/* modules: glide open on hover or tap */}
+      <div
+        className={`grid transition-[grid-template-rows] duration-700 ease-out ${
+          open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="px-5 sm:px-7 pb-6 pt-1 border-t border-ink/[0.07]">
+            <div className="pt-4">
+              <ModuleSteps modules={week.modules} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Curriculum() {
+  const trailRef = useRef<HTMLDivElement>(null);
+  /* the spine fills ember as the reader walks the roadmap */
+  const { scrollYProgress } = useScroll({
+    target: trailRef,
+    offset: ['start 0.55', 'end 0.85'],
+  });
+  const fill = useSpring(scrollYProgress, { stiffness: 70, damping: 22, mass: 0.4 });
+  /* weeks you've explored get a satisfying tick — collect all seven */
+  const [visited, setVisited] = useState<Set<number>>(new Set());
+  const markVisited = (i: number) =>
+    setVisited((prev) => (prev.has(i) ? prev : new Set(prev).add(i)));
+
+  /* measure each milestone so the path can weave organically through them */
+  const nodeRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [route, setRoute] = useState<{ h: number; ys: number[] }>({ h: 0, ys: [] });
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      const trail = trailRef.current;
+      if (!trail) return;
+      const tr = trail.getBoundingClientRect();
+      const ys = nodeRefs.current.map((n) => {
+        if (!n) return 0;
+        const r = n.getBoundingClientRect();
+        return r.top - tr.top + r.height / 2;
+      });
+      setRoute({ h: tr.height, ys });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (trailRef.current) ro.observe(trailRef.current);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  /* an organic serpentine through every milestone (SVG coords, width 160) */
+  const SVG_W = 160;
+  const CX = SVG_W / 2;
+  const AMP = 30;
+  const pathD = (() => {
+    const ys = route.ys.filter((y) => y > 0);
+    if (ys.length < 2) return `M ${CX} 0 L ${CX} ${route.h}`;
+    let d = `M ${CX} 0 C ${CX} ${ys[0] * 0.4}, ${CX} ${ys[0] * 0.7}, ${CX} ${ys[0]}`;
+    for (let i = 1; i < ys.length; i++) {
+      const y0 = ys[i - 1];
+      const y1 = ys[i];
+      const bulge = CX + (i % 2 ? AMP : -AMP);
+      d += ` C ${bulge} ${y0 + (y1 - y0) * 0.4}, ${bulge} ${y1 - (y1 - y0) * 0.4}, ${CX} ${y1}`;
+    }
+    // trail off below the final milestone
+    const last = ys[ys.length - 1];
+    d += ` C ${CX} ${last + (route.h - last) * 0.4}, ${CX} ${route.h}, ${CX} ${route.h}`;
+    return d;
+  })();
 
   return (
     <section id="curriculum" className="relative bg-paper">
       <div className="max-w-content mx-auto px-5 sm:px-8 pt-8 sm:pt-12 pb-24 sm:pb-28">
         <Reveal>
-          <h2
-            className="mx-auto max-w-4xl text-center font-semibold text-ink text-[1.9rem] leading-[1.14] sm:text-[2.4rem] sm:leading-[1.12] md:text-[2.7rem]"
-            style={{ letterSpacing: '-0.035em' }}
-          >
+          <h2 className="mx-auto max-w-4xl text-center font-brand text-ink text-[2rem] leading-[1.18] sm:text-[2.6rem] sm:leading-[1.14] md:text-[2.9rem]">
             The Exact <Accent>7-Week Roadmap</Accent> You Need To Follow To Start &amp; Scale A
             Successful Online Education Company
           </h2>
-          <p className="mt-6 text-center text-[15px] sm:text-[17px] leading-[1.7] text-ink/65 md:whitespace-nowrap">
-            Read every detail carefully. You don’t skip steps in your own brand or business, do you?
-          </p>
         </Reveal>
 
-        {/* ---- Week selector rail (sliding ember pill) ---- */}
-        <Reveal className="mt-12" delay={60}>
-          <div
-            ref={railRef}
-            className="flex gap-2 overflow-x-auto no-scrollbar md:flex-wrap md:justify-center md:overflow-visible -mx-5 px-5 md:mx-0 md:px-0 pb-1"
+        {/* the instruction — drawn in so it actually gets read */}
+        <motion.p
+          className="mt-7 text-center text-[15px] sm:text-[17px] leading-[1.7] text-ink/70"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, margin: '-10%' }}
+          variants={{ show: { transition: { staggerChildren: 0.045, delayChildren: 0.15 } } }}
+        >
+          {['Read', 'every', 'detail', 'carefully.'].map((w, i) => (
+            <motion.span
+              key={i}
+              className="inline-block mr-[0.28em] font-semibold text-ink"
+              variants={{
+                hidden: { opacity: 0, y: 12, filter: 'blur(4px)' },
+                show: { opacity: 1, y: 0, filter: 'blur(0px)' },
+              }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <span className="border-b-2 border-ember/50 pb-0.5">{w}</span>
+            </motion.span>
+          ))}
+          {'You don’t skip steps in your own brand or business, do you?'.split(' ').map((w, i) => (
+            <motion.span
+              key={`b-${i}`}
+              className="inline-block mr-[0.28em]"
+              variants={{
+                hidden: { opacity: 0, y: 12, filter: 'blur(4px)' },
+                show: { opacity: 1, y: 0, filter: 'blur(0px)' },
+              }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {w}
+            </motion.span>
+          ))}
+        </motion.p>
+
+        {/* ---- The roadmap: one organic path winding through seven weeks ---- */}
+        <div ref={trailRef} className="relative mt-16 max-w-5xl mx-auto">
+          {/* serpentine route — grey base + ember progress that draws on scroll */}
+          <svg
+            className="absolute left-[26px] md:left-1/2 top-0 -translate-x-1/2 overflow-visible pointer-events-none"
+            width={SVG_W}
+            height={route.h || 0}
+            viewBox={`0 0 ${SVG_W} ${route.h || 1}`}
+            fill="none"
+            aria-hidden
           >
-            {WEEKS.map((w, i) => {
-              const on = active === i;
+            <path
+              d={pathD}
+              stroke="rgba(12,11,10,0.1)"
+              strokeWidth={3}
+              strokeLinecap="round"
+            />
+            <motion.path
+              d={pathD}
+              stroke="var(--ember)"
+              strokeWidth={3.5}
+              strokeLinecap="round"
+              style={{ pathLength: fill, filter: 'drop-shadow(0 0 6px rgba(255,66,0,0.5))' }}
+            />
+          </svg>
+
+          <div className="space-y-14 md:space-y-20">
+            {WEEKS.map((week, i) => {
+              const Icon = ICONS[week.icon];
+              const leftSide = i % 2 === 0; // desktop: alternate sides down the path
               return (
-                <button
-                  key={w.numeral}
-                  onClick={() => go(i)}
-                  className={`relative shrink-0 rounded-full px-4 sm:px-5 py-2.5 transition-colors duration-300 ${
-                    on ? 'text-white' : 'text-ink/55 hover:text-ink'
-                  }`}
-                >
-                  {on && (
-                    <motion.span
-                      layoutId="weekPill"
-                      className="absolute inset-0 rounded-full bg-ember shadow-[0_14px_30px_-12px_rgba(255,66,0,0.7)]"
-                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                <div key={week.numeral} className="relative">
+                  {/* milestone on the spine */}
+                  <motion.div
+                    className="absolute left-[26px] md:left-1/2 top-0 -translate-x-1/2 z-10"
+                    initial={{ scale: 0, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    viewport={{ once: false, margin: '-20% 0px -20% 0px' }}
+                    transition={{ type: 'spring', stiffness: 280, damping: 18 }}
+                  >
+                    <span
+                      ref={(el) => (nodeRefs.current[i] = el)}
+                      className="relative flex items-center justify-center w-[52px] h-[52px] rounded-full bg-ember text-white font-brand text-[1.5rem] leading-none border-4 border-paper shadow-[0_16px_36px_-12px_rgba(255,66,0,0.7)]"
+                    >
+                      {i + 1}
+                      {visited.has(i) && (
+                        <motion.span
+                          className="absolute -bottom-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-white border border-ember/40 shadow-md"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+                        >
+                          <Check size={11} className="text-ember" strokeWidth={3.5} />
+                        </motion.span>
+                      )}
+                    </span>
+                  </motion.div>
+
+                  {/* week card */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 36 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: false, margin: '-12% 0px -12% 0px' }}
+                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.08 }}
+                    className={`relative ml-[62px] md:ml-0 md:w-[calc(50%-142px)] ${
+                      leftSide ? 'md:mr-auto' : 'md:ml-auto'
+                    }`}
+                  >
+                    {/* connector from spine to card (desktop) — long enough that the
+                        card sits well clear of the centre line, no accidental hovers */}
+                    <span
+                      className={`hidden md:block absolute top-[24px] h-[2px] w-[122px] bg-ink/10 ${
+                        leftSide ? '-right-[132px]' : '-left-[132px]'
+                      }`}
                     />
-                  )}
-                  <span className="relative flex items-center gap-2 whitespace-nowrap text-[13px] sm:text-sm font-semibold">
-                    <span className="font-brand text-[1.15em] leading-none">{w.numeral}</span>
-                    <span style={{ letterSpacing: '-0.01em' }}>{w.title}</span>
-                  </span>
-                </button>
+
+                    <WeekCard week={week} index={i} Icon={Icon} onVisit={markVisited} />
+                  </motion.div>
+                </div>
               );
             })}
           </div>
-        </Reveal>
-
-        {/* ---- Active week panel ---- */}
-        <Reveal className="mt-7" delay={80}>
-          <div className="relative rounded-[1.75rem] border border-ink/10 bg-white shadow-[0_50px_100px_-60px_rgba(12,11,10,0.4)] overflow-hidden">
-            {/* week header */}
-            <div className="relative flex items-center gap-4 sm:gap-5 px-5 sm:px-8 pt-6 sm:pt-7 pb-5 border-b border-ink/[0.07]">
-              <span className="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-ember/[0.08] border border-ember/25 text-ember shrink-0">
-                <Icon size={24} strokeWidth={1.6} />
-              </span>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.26em] text-ink/40 mb-1">
-                  <span className="font-brand text-ember text-base leading-none">{week.numeral}</span>
-                  Week {active + 1}
-                </div>
-                <h3
-                  className="text-ink font-semibold text-xl sm:text-2xl leading-tight"
-                  style={{ letterSpacing: '-0.03em' }}
-                >
-                  {week.title}
-                </h3>
-              </div>
-              {/* desktop prev/next */}
-              <div className="ml-auto hidden sm:flex items-center gap-2">
-                <button
-                  onClick={() => go((active - 1 + WEEKS.length) % WEEKS.length)}
-                  aria-label="Previous week"
-                  className="flex items-center justify-center w-9 h-9 rounded-full border border-ink/15 text-ink/50 hover:border-ember/40 hover:text-ember transition-colors"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={() => go((active + 1) % WEEKS.length)}
-                  aria-label="Next week"
-                  className="flex items-center justify-center w-9 h-9 rounded-full border border-ink/15 text-ink/50 hover:border-ember/40 hover:text-ember transition-colors"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            </div>
-
-            {/* animated content */}
-            <div className="relative px-5 sm:px-8 py-6 sm:py-7 overflow-hidden">
-              <AnimatePresence mode="wait" custom={dir} initial={false}>
-                <motion.div
-                  key={active}
-                  custom={dir}
-                  initial={{ opacity: 0, x: dir * 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: dir * -40 }}
-                  transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <p className="text-ink/65 text-[15px] sm:text-base leading-[1.7] max-w-3xl border-l-2 border-ember/50 pl-4 mb-6">
-                    {week.description}
-                  </p>
-
-                  {/* modules: snap carousel on mobile, grid on md+ */}
-                  <div className="flex gap-3.5 overflow-x-auto snap-x snap-mandatory no-scrollbar -mx-5 px-5 pb-1 md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
-                    {week.modules.map((mod, mi) => (
-                      <div
-                        key={mod.title}
-                        className="snap-center shrink-0 w-[86%] sm:w-[70%] md:w-auto md:shrink rounded-2xl border border-ink/10 bg-paperDeep/40 p-5 sm:p-6 transition-colors duration-300 hover:border-ember/30 flex flex-col"
-                      >
-                        <div className="flex items-center justify-between gap-3 mb-3">
-                          <span className="flex items-center justify-center w-8 h-8 rounded-full bg-ember/[0.08] border border-ember/25 font-brand text-ember text-lg shrink-0">
-                            {mi + 1}
-                          </span>
-                          {mod.comingSoon && (
-                            <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-ember bg-ember/[0.08] border border-ember/30 rounded-full px-2.5 py-1">
-                              <Lock size={10} /> Soon
-                            </span>
-                          )}
-                        </div>
-                        <h4
-                          className="text-ink font-semibold text-[15px] sm:text-[17px] leading-snug mb-2"
-                          style={{ letterSpacing: '-0.02em' }}
-                        >
-                          {mod.title}
-                        </h4>
-                        {mod.description && (
-                          <p className="text-ink/55 text-[13px] sm:text-sm leading-relaxed mb-3">
-                            {mod.description}
-                          </p>
-                        )}
-                        {mod.points.length > 0 && (
-                          <ul className="space-y-2 border-t border-ink/[0.07] pt-3 mt-auto">
-                            {mod.points.map((point) => (
-                              <li
-                                key={point}
-                                className="flex items-start gap-2 text-[13px] sm:text-sm text-ink/70 leading-relaxed"
-                              >
-                                <Plus size={13} className="text-ember mt-1 shrink-0" strokeWidth={2.5} />
-                                {point}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-
-            {/* progress dots */}
-            <div className="flex items-center justify-center gap-1.5 pb-6">
-              {WEEKS.map((w, i) => (
-                <button
-                  key={w.numeral}
-                  onClick={() => go(i)}
-                  aria-label={`Week ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all duration-400 ${
-                    active === i ? 'w-7 bg-ember' : 'w-1.5 bg-ink/15 hover:bg-ink/30'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-        </Reveal>
+        </div>
 
         {/* That was a lot + CTA */}
-        <Reveal className="mt-20 mx-auto max-w-3xl" delay={80}>
-          <h3 className="text-center font-brand text-[2rem] sm:text-[2.6rem] text-ink mb-5 leading-[1.15]">
+        <motion.div
+          className="mt-24 mx-auto max-w-3xl"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, margin: '-12%' }}
+          variants={{ show: { transition: { staggerChildren: 0.16, delayChildren: 0.05 } } }}
+        >
+          <motion.h3
+            className="text-center font-brand text-[2rem] sm:text-[2.6rem] text-ink mb-5 leading-[1.15]"
+            variants={{
+              hidden: { opacity: 0, y: 26, filter: 'blur(8px)' },
+              show: { opacity: 1, y: 0, filter: 'blur(0px)' },
+            }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
             That was a lot…
-          </h3>
-          <p className="mx-auto max-w-2xl text-ink/65 leading-[1.7] text-[15px] sm:text-[17px]">
+          </motion.h3>
+          <motion.p
+            className="mx-auto max-w-2xl text-center text-ink/65 leading-[1.7] text-[15px] sm:text-[17px]"
+            variants={{
+              hidden: { opacity: 0, y: 18 },
+              show: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
             That’s because a lot goes into a massively successful brand. Yet this is the fastest
             path anyone — even a complete beginner — can take. Some steps you may already know, but
             none of you will know the esoteric secrets shared within.{' '}
             <span className="text-ink font-semibold whitespace-nowrap">That is what sets us apart.</span>
-          </p>
-          <div className="mt-9 flex justify-center">
+          </motion.p>
+          <motion.div
+            className="mt-9 flex justify-center"
+            variants={{
+              hidden: { opacity: 0, y: 14 },
+              show: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          >
             <CTAButton label="Book A Call Now" size="lg" />
-          </div>
-        </Reveal>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* seam → dark AI suite */}

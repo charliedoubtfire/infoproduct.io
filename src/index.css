@@ -107,21 +107,99 @@ body {
   animation: heroZoom 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ---------- Scroll reveal ---------- */
+/* Per-word headline rise — each word lifts from behind its own mask */
+@keyframes heroWord {
+  0% {
+    opacity: 0;
+    transform: translateY(105%) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+}
+.hero-word {
+  animation-name: heroWord;
+  animation-duration: 1s;
+}
+/* The brand line — scales and brightens in for emphasis */
+@keyframes heroWordGlow {
+  0% {
+    opacity: 0;
+    transform: scale(1.18);
+    filter: blur(16px);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+.hero-word-glow {
+  animation-name: heroWordGlow;
+  animation-duration: 1.5s;
+}
+
+/* ---------- Scroll reveal — the hypnotic tunnel ----------
+   Unreached content sits further back: dimmer, softer, slightly smaller,
+   so the eye is drawn only to what's in focus and never overwhelmed by
+   the wall of copy still ahead. */
 .scroll-reveal {
   opacity: 0;
-  transform: translateY(38px);
-  filter: blur(7px);
+  transform: translateY(46px) scale(0.97);
+  filter: blur(10px);
   transition:
-    opacity 1.05s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 1.05s cubic-bezier(0.16, 1, 0.3, 1),
-    filter 1.05s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 1.1s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform, filter;
 }
 .scroll-reveal.is-visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   filter: blur(0);
+}
+
+/* Diagonal sheen that sweeps across a deliverable card on hover */
+.dl-sheen {
+  position: absolute;
+  top: -60%;
+  bottom: -60%;
+  width: 28%;
+  left: -40%;
+  transform: rotate(14deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 66, 0, 0.07), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    left 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.4s ease;
+}
+.dl-card:hover .dl-sheen {
+  left: 120%;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .dl-sheen {
+    display: none;
+  }
+}
+
+/* Gentle perpetual bob for the network chips */
+@keyframes chipBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+.chip-bob {
+  animation: chipBob 3.4s ease-in-out infinite;
 }
 
 /* Subtle ambient drift for background art */
@@ -177,6 +255,7 @@ body {
   .hero-anim,
   .hero-zoom,
   .drift-slow,
+  .chip-bob,
   .marquee-track {
     animation: none;
     opacity: 1;
@@ -289,4 +368,105 @@ body {
   .glow-card::after {
     animation: none;
   }
+}
+
+/* ---------------- Liquid glass (used on the footer) ---------------- */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.012);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.12),
+    0 30px 80px -40px rgba(0, 0, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.14) 22%,
+    rgba(255, 255, 255, 0) 45%,
+    rgba(255, 255, 255, 0) 58%,
+    rgba(255, 66, 0, 0.18) 82%,
+    rgba(255, 66, 0, 0.4) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* gentle, slow breath on the primary conversion button — a nudge, not a shout */
+@keyframes ctaBreathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.028) translateY(-2px); }
+}
+.cta-breathe {
+  animation: ctaBreathe 3.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-breathe { animation: none; }
+}
+
+/* slow ember shimmer along a hairline */
+@keyframes lineShimmer {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+.line-shimmer {
+  background: linear-gradient(90deg, transparent, #ff4200 35%, #ff8a5c 50%, #ff4200 65%, transparent);
+  background-size: 200% 100%;
+  animation: lineShimmer 3.6s linear infinite;
+}
+
+/* automatic gloss sweep across the breathing CTA */
+.cta-breathe > a {
+  position: relative;
+  overflow: hidden;
+}
+.cta-breathe > a::after {
+  content: '';
+  position: absolute;
+  top: -45%;
+  bottom: -45%;
+  width: 30%;
+  left: -45%;
+  transform: rotate(14deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: ctaSheen 4.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes ctaSheen {
+  0%, 58% { left: -45%; opacity: 0; }
+  66% { opacity: 1; }
+  88%, 100% { left: 118%; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .line-shimmer, .cta-breathe > a::after { animation: none; }
+}
+
+/* endless signature ticker along the very bottom of the site */
+@keyframes tickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: tickerScroll 36s linear infinite;
+  will-change: transform;
+}
+.ticker-mask {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
 }
