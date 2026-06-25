@@ -1,12 +1,79 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Plus, Lock, ChevronDown, Check } from 'lucide-react';
 import { motion, useScroll, useSpring, useInView } from 'framer-motion';
 import { WEEKS } from '../content';
 import { ICONS, Reveal, Accent, CTAButton } from './shared';
 
+/* True on a real pointer (desktop). False on touch — where hover doesn't
+   exist and tap-to-toggle accordions are fiddly. */
+function useCanHover() {
+  const [canHover, setCanHover] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const sync = () => setCanHover(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+  return canHover;
+}
+
 /* Modules as a clean step list inside each week — title and summary always
    visible, the full detail one tap away. */
-function ModuleSteps({ modules }: { modules: (typeof WEEKS)[number]['modules'] }) {
+/* The bullet list for one module */
+function ModulePoints({ points }: { points: string[] }) {
+  return (
+    <ul className="space-y-2">
+      {points.map((point) => (
+        <li
+          key={point}
+          className="flex items-start gap-2 text-[13px] sm:text-sm text-ink/85 leading-relaxed"
+        >
+          <Plus size={13} className="text-ember mt-1 shrink-0" strokeWidth={2.5} />
+          {point}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function ModuleHead({ mod, mi }: { mod: (typeof WEEKS)[number]['modules'][number]; mi: number }) {
+  return (
+    <>
+      <span className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-full bg-ember/[0.08] border border-ember/25 font-brand text-ember text-base shrink-0">
+        {mi + 1}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center gap-2 flex-wrap">
+          <h4
+            className="text-ink font-semibold text-[15px] leading-snug"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            {mod.title}
+          </h4>
+          {mod.comingSoon && (
+            <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-ember bg-ember/[0.08] border border-ember/30 rounded-full px-2 py-0.5">
+              <Lock size={9} /> Soon
+            </span>
+          )}
+        </span>
+        {mod.description && (
+          <p className="text-ink/75 text-[13px] sm:text-sm leading-relaxed mt-1.5">
+            {mod.description}
+          </p>
+        )}
+      </span>
+    </>
+  );
+}
+
+function ModuleSteps({
+  modules,
+  canHover,
+}: {
+  modules: (typeof WEEKS)[number]['modules'];
+  canHover: boolean;
+}) {
   const [openSet, setOpenSet] = useState<Set<number>>(new Set());
 
   const toggle = (mi: number) =>
@@ -17,9 +84,31 @@ function ModuleSteps({ modules }: { modules: (typeof WEEKS)[number]['modules'] }
       return next;
     });
 
-  const openOn = (mi: number) =>
-    setOpenSet((prev) => (prev.has(mi) ? prev : new Set(prev).add(mi)));
+  /* Touch / no-hover: every module is fully open. No fiddly accordions —
+     one tap on the week reveals the whole curriculum to scroll. */
+  if (!canHover) {
+    return (
+      <div className="space-y-2.5">
+        {modules.map((mod, mi) => (
+          <div
+            key={mod.title}
+            className="rounded-2xl border border-ink/[0.08] bg-paperDeep/30 px-4 py-4"
+          >
+            <div className="flex items-start gap-3.5">
+              <ModuleHead mod={mod} mi={mi} />
+            </div>
+            {mod.points.length > 0 && (
+              <div className="mt-3 ml-[46px]">
+                <ModulePoints points={mod.points} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
+  /* Pointer device: hover or click to expand each module */
   return (
     <div className="space-y-2.5">
       {modules.map((mod, mi) => {
@@ -28,7 +117,9 @@ function ModuleSteps({ modules }: { modules: (typeof WEEKS)[number]['modules'] }
         return (
           <div
             key={mod.title}
-            onMouseEnter={() => hasMore && openOn(mi)}
+            onMouseEnter={() =>
+              hasMore && setOpenSet((prev) => (prev.has(mi) ? prev : new Set(prev).add(mi)))
+            }
             className={`rounded-2xl border transition-colors duration-300 ${
               open ? 'border-ember/30 bg-ember/[0.03]' : 'border-ink/[0.08] bg-paperDeep/30'
             }`}
@@ -40,49 +131,8 @@ function ModuleSteps({ modules }: { modules: (typeof WEEKS)[number]['modules'] }
               }`}
               aria-expanded={open}
             >
-              <span className="mt-0.5 flex items-center justify-center w-8 h-8 rounded-full bg-ember/[0.08] border border-ember/25 font-brand text-ember text-base shrink-0">
-                {mi + 1}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-2 flex-wrap">
-                  <h4
-                    className="text-ink font-semibold text-[15px] leading-snug"
-                    style={{ letterSpacing: '-0.02em' }}
-                  >
-                    {mod.title}
-                  </h4>
-                  {mod.comingSoon && (
-                    <span className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-ember bg-ember/[0.08] border border-ember/30 rounded-full px-2 py-0.5">
-                      <Lock size={9} /> Soon
-                    </span>
-                  )}
-                </span>
-                {mod.description && (
-                  <p className="text-ink/75 text-[13px] sm:text-sm leading-relaxed mt-1.5">
-                    {mod.description}
-                  </p>
-                )}
-                {hasMore && (
-                  <span
-                    className={`mt-2.5 inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-                      open ? 'text-ember' : 'text-ink/40'
-                    }`}
-                  >
-                    {open ? 'Close' : (
-                      <>
-                        <span className="md:hidden">Tap to see what’s inside</span>
-                        <span className="hidden md:inline">See what’s inside</span>
-                      </>
-                    )}
-                    <ChevronDown
-                      size={13}
-                      className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`}
-                    />
-                  </span>
-                )}
-              </span>
+              <ModuleHead mod={mod} mi={mi} />
             </button>
-
             {hasMore && (
               <div
                 className={`grid transition-[grid-template-rows] duration-500 ease-out ${
@@ -90,17 +140,9 @@ function ModuleSteps({ modules }: { modules: (typeof WEEKS)[number]['modules'] }
                 }`}
               >
                 <div className="overflow-hidden">
-                  <ul className="space-y-2 px-4 sm:px-5 pb-4 ml-[46px]">
-                    {mod.points.map((point) => (
-                      <li
-                        key={point}
-                        className="flex items-start gap-2 text-[13px] sm:text-sm text-ink/85 leading-relaxed"
-                      >
-                        <Plus size={13} className="text-ember mt-1 shrink-0" strokeWidth={2.5} />
-                        {point}
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="px-4 sm:px-5 pb-4 ml-[46px]">
+                    <ModulePoints points={mod.points} />
+                  </div>
                 </div>
               </div>
             )}
@@ -124,6 +166,7 @@ function WeekCard({
   Icon: (typeof ICONS)[string];
   onVisit: (i: number) => void;
 }) {
+  const canHover = useCanHover();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   /* the card crossing mid-screen comes into sharp focus, drawing the eye */
@@ -140,8 +183,8 @@ function WeekCard({
       className={`group rounded-[1.75rem] border bg-white shadow-[0_40px_90px_-60px_rgba(12,11,10,0.45)] overflow-hidden transition-all duration-700 ${
         inFocus ? 'border-ember/25 opacity-100' : 'border-ink/10 opacity-[0.55]'
       }`}
-      onMouseEnter={openUp}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={canHover ? openUp : undefined}
+      onMouseLeave={canHover ? () => setOpen(false) : undefined}
     >
       <button
         onClick={() => (open ? setOpen(false) : openUp())}
@@ -177,7 +220,7 @@ function WeekCard({
               open ? 'opacity-0' : ''
             }`}
           >
-            <span className="md:hidden">Tap to view the {week.modules.length} modules</span>
+            <span className="md:hidden">Tap to reveal all {week.modules.length} modules</span>
             <span className="hidden md:inline">Hover to view the {week.modules.length} modules</span>
           </span>
         </div>
@@ -192,7 +235,7 @@ function WeekCard({
         <div className="overflow-hidden">
           <div className="px-5 sm:px-7 pb-6 pt-1 border-t border-ink/[0.07]">
             <div className="pt-4">
-              <ModuleSteps modules={week.modules} />
+              <ModuleSteps modules={week.modules} canHover={canHover} />
             </div>
           </div>
         </div>
